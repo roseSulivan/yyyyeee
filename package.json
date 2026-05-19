@@ -1,0 +1,13 @@
+{
+  "name": "wa-countdown-bot",
+  "version": "1.0.0",
+  "description": "Bot WA Countdown via GitHub Actions",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^7.0.0-rc11",
+    "qrcode-terminal": "^0.12.0"
+  }
+}
