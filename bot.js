@@ -1,9 +1,9 @@
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, Browsers } = require('@whiskeysockets/baileys');
 const qrcode = require('qrcode-terminal');
 
-// Fungsi untuk menghitung sisa hari menuju target
+// Fungsi untuk menghitung sisa hari menuju target dan membuat progress bar meriah
 function getCountdown() {
-    const targetDate = new Date('2026-10-10'); // <--- SESUAIKAN TANGGAL TARGET DI SINI
+    const targetDate = new Date('2026-10-10'); // Tanggal Konser A7X
     const today = new Date();
     
     // Reset jam ke 00:00:00 agar perhitungan hari akurat
@@ -14,9 +14,50 @@ function getCountdown() {
     const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
     
     if (daysLeft > 0) {
-        return `🔥 *COUNTDOWN CONCERT* 🔥\n\nHalo kawan-kawan! Sisa *${daysLeft} hari* lagi menuju konser 10 Oktober! Selalu jaga kesehatan dan utamakan sikap saling menghargai.`;
+        // Logika pembuatan progress bar
+        const totalHariTunggu = 150; // Total perkiraan rentang hari tunggu menuju konser
+        const hariTerlewati = totalHariTunggu - daysLeft;
+        
+        // Amankan persentase agar selalu berada di range 0% - 100%
+        let persentase = Math.floor((hariTerlewati / totalHariTunggu) * 100);
+        if (persentase < 0) persentase = 0;
+        if (persentase > 100) persentase = 100;
+
+        // Bikin bar kotak-kotak (Panjang 10 karakter)
+        const panjangBar = 10;
+        const jumlahKotakIsi = Math.round((persentase / 100) * panjangBar);
+        const jumlahKotakKosong = panjangBar - jumlahKotakIsi;
+        const progressBar = '🟦'.repeat(jumlahKotakIsi) + '⬛'.repeat(jumlahKotakKosong);
+
+        // Template pesan super meriah khas Deathbat Blitar Raya
+        return `🔥 *A7X NATION BLITAR RAYA PROUDLY PRESENT* 🔥
+🤘 *ROAD TO AVENGED SEVENFOLD CONCERT 2026* 🤘
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Halo kawan-kawan *Deathbat Family*! 🦇
+Waktu berjalan cepat, persiapkan energi kalian dari sekarang!
+
+⏳ *Sisa Hari:* *${daysLeft} Hari Lagi!*
+📊 *Progress Menuju Hari H:*
+${progressBar} [ *${persentase}%* ]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💪 *PESAN HARI INI:*
+_ Gak ada !
+
+*#FoREVer* 🦅
+*Salam Persaudaraan - Deathbat Blitar Raya* 🖤`;
+
     } else if (daysLeft === 0) {
-        return `🎉 *HARI INI ADALAH WAKTUNYA!* 🎉\n\nKonser yang kita tunggu-tunggu akhirnya tiba hari ini! Enjoy the show!`;
+        return `🎉 *WAKTUNYA TELAH TIBA! SEIZE THE DAY!* 🎉
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🤘 *HARI INI ADALAH SEJARAH KITA!* 🤘
+
+Konser *AVENGED SEVENFOLD* yang kita tunggu-tunggu akhirnya resmi digelar hari ini! 
+
+🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦 [ *100% DONE* ]
+
+Ayo merapat, jaga barisan, nikmati pertunjukan, dan buat Blitar Raya bangga di venue! Enjoy the show, kawan-kawan! 🔥🦇💥`;
     } else {
         return null; // Target tanggal sudah lewat
     }
@@ -28,19 +69,18 @@ async function startBot() {
 
     const sock = makeWASocket({
         auth: state,
-        printQRInTerminal: false, // Dimatikan karena sudah deprecated di versi baru
+        printQRInTerminal: false,
         browser: Browsers.macOS('Desktop'), // Menyamarkan sebagai WA Web Mac resmi agar lolos error 405
         syncFullHistory: false // Membuat koneksi awal lebih ringan dan cepat
     });
 
-    // Menyimpan kredensial/session setiap ada perubahan (penting untuk GitHub Actions)
+    // Menyimpan kredensial/session setiap ada perubahan
     sock.ev.on('creds.update', saveCreds);
 
     // Menangani status koneksi dan QR Code
     sock.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect, qr } = update;
 
-        // Jika server meminta QR, cetak manual menggunakan qrcode-terminal
         if (qr) {
             console.log('\n=========================================');
             console.log('👉 SILAKAN SCAN QR CODE DI BAWAH INI 👈');
@@ -56,7 +96,6 @@ async function startBot() {
             console.log(`Koneksi terputus (Status: ${statusCode}). Mencoba hubung kembali: ${shouldReconnect}`);
             
             if (shouldReconnect) {
-                // Jeda 3 detik sebelum mencoba terhubung kembali untuk menghindari spam ke server WA
                 setTimeout(() => startBot(), 3000); 
             }
         } else if (connection === 'open') {
@@ -65,12 +104,10 @@ async function startBot() {
             const teksPesan = getCountdown();
             
             if (teksPesan) {
-                // ID Target Kirim Pesan
-                // Masukkan nomor tujuan di sini (Ganti xxxxxxxxx dengan nomor HP)
-                // Format nomor internasional tanpa simbol '+' (contoh: 628123456789)
-                const targetId = '120363406965958235@g.us'; // <--- GANTI NOMOR TARGET DI SINI
+                // ID Grup Target yang sudah kamu pasang sebelumnya
+                const targetId = '120363406965958235@g.us';
 
-                console.log('Mengirim pesan countdown...');
+                console.log('Mengirim pesan countdown meriah...');
                 await sock.sendMessage(targetId, { text: teksPesan });
                 console.log('✅ Pesan sukses terkirim!');
             } else {
