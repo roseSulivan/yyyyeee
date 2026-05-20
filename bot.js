@@ -1,18 +1,20 @@
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, Browsers } = require('@whiskeysockets/baileys');
 const qrcode = require('qrcode-terminal');
 
-// Fungsi untuk menghitung sisa waktu menuju target jam 7 malam
+// Fungsi untuk menghitung sisa waktu detail (Hari, Jam, Menit) menuju target jam 7 malam
 function getCountdown() {
-    // Set target ke 10 Oktober 2026 jam 19:00 (7 Malam) WIB lokal
+    // Set target ke 10 Oktober 2026 jam 19:00 (7 Malam) WIB
     const targetDate = new Date('2026-10-10T19:00:00'); 
     const today = new Date();
     
     const timeDiff = targetDate.getTime() - today.getTime();
     
-    // Hitung sisa hari secara presisi (termasuk sisa jam pecahan)
-    const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
-    
-    if (daysLeft > 0) {
+    if (timeDiff > 0) {
+        // Logika hitung Hari, Jam, dan Menit secara presisi
+        const daysLeft = Math.floor(timeDiff / (1000 * 3600 * 24));
+        const hoursLeft = Math.floor((timeDiff % (1000 * 3600 * 24)) / (1000 * 3600));
+        const minutesLeft = Math.floor((timeDiff % (1000 * 3600)) / (1000 * 60));
+
         // Logika pembuatan progress bar (Rentang tunggu 150 hari)
         const totalHariTunggu = 150; 
         const hariTerlewati = totalHariTunggu - daysLeft;
@@ -26,12 +28,13 @@ function getCountdown() {
         const jumlahKotakKosong = panjangBar - jumlahKotakIsi;
         const progressBar = '🟦'.repeat(jumlahKotakIsi) + '⬛'.repeat(jumlahKotakKosong);
 
-        // Template pesan ringkas, padat, dan gahar
+        // Template pesan ringkas dengan detail waktu yang presisi
         return `🔥 *A7X NATION BLITAR RAYA* 🔥
 🤘 *ROAD TO CONCERT 2026* 🤘
 ━━━━━━━━━━━━━━━━━━━━━
 
-⏳ *Sisa Waktu:* *${daysLeft} Hari Lagi!*
+⏳ *Sisa Waktu:* *${daysLeft} Hari, ${hoursLeft} Jam, ${minutesLeft} Menit Lagi!*
+
 ⏰ *Kick Off:* 19:00 (7 Malam) WIB
 
 📊 *Progress:*
@@ -42,7 +45,8 @@ _Keep solid, jaga fisik & utamakan sikap saling menghargai sesama A7X Nation!_
 
 *#FoREVer* 🦅 *Salam Persaudaraan* 🖤`;
 
-    } else if (daysLeft === 0) {
+    } else if (timeDiff <= 0 && timeDiff > -(1000 * 3600 * 5)) {
+        // Jika sedang hari H dan konser masih berlangsung (dalam radius 5 jam dari jam 7 malam)
         return `🎉 *IT'S SHOWTIME! SEIZE THE DAY!* 🎉
 ━━━━━━━━━━━━━━━━━━━━━
 🤘 *HARI INI ADALAH SEJARAH!* 🤘
@@ -53,7 +57,7 @@ Malam ini jam 19:00 WIB, konser *AVENGED SEVENFOLD* resmi dimulai!
 
 Rapatkan barisan, nikmati pertunjukan, dan pecahkan venue malam ini, kawan-kawan! 🔥🦇💥`;
     } else {
-        return null; // Target tanggal sudah lewat
+        return null; // Konser sudah selesai lewat hari
     }
 }
 
@@ -97,7 +101,7 @@ async function startBot() {
             if (teksPesan) {
                 const targetId = '120363406965958235@g.us';
 
-                console.log('Mengirim pesan countdown pendek meriah...');
+                console.log('Mengirim pesan countdown presisi hari, jam, menit...');
                 await sock.sendMessage(targetId, { text: teksPesan });
                 console.log('✅ Pesan sukses terkirim!');
             } else {
